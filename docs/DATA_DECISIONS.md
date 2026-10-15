@@ -43,3 +43,32 @@
   averages is not documented in the source.
 - **Assumption:** Treated as hourly averages. Comparisons of fast-changing
   series (solar, wind) across the 2023/2024 boundary carry this caveat.
+
+  ## DD-06: Block-level errors in the Kaggle state data
+- 25+ dates where 10–17 states change by 30–970% on the same day,
+  in both directions.
+- Changes are level shifts that persist for days (e.g. Punjab ~90 MU →
+  ~290 MU from 2020-01-19, Delhi ~58 → ~130, Haryana ~95 → ~210), not
+  one-day spikes, consistent with weekly blocks scraped incorrectly.
+- Day-over-day jump flags detect only the first day of each block.
+- Real events (Janata Curfew 22 Mar 2020, lockdown from 25 Mar) produce
+  similar multi-state changes, so the source alone cannot separate
+  errors from events.
+- **Decision:** Option A, cross-source reconciliation. Kaggle daily data is
+  rolled up to state-months and compared with the Ministry of Power's
+  official monthly energy met (via Dataful). State-months outside tolerance
+  are marked unreliable and excluded from gold analyses.
+
+  ## DD-07: Kaggle state data fails reconciliation against official CEA data
+- Official data (CEA via India Data Portal) covers Jan 2020 – Jun 2023;
+  no 2019, so Kaggle 2019 cannot be validated.
+- 2020: 231 of 396 state-months have <50% Kaggle coverage. Of the 164
+  comparable state-months, 78 (48%) are within ±10% of official.
+- Errors span whole months, not only flagged days: Punjab Jan 2020 +55%
+  with 3 jump days; Delhi +32% to +47% every month Jan–Apr 2020.
+- Method check: Dadra and Nagar Haveli shows a consistent −30% offset,
+  explained by the official figure including Daman & Diu. States such as
+  Jharkhand, Kerala and Bihar agree closely.
+- **Decision:** Official CEA monthly data becomes the primary state-level
+  source. Kaggle daily data is retained as a documented case study; only
+  state-months with status `match` are exposed in gold.

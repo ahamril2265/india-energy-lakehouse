@@ -8,7 +8,17 @@ GRID_COLS = ["ts_raw", "thermal_mw", "hydro_mw", "gas_mw", "nuclear_mw", "wind_m
              "source_file", "source_format", "resolution_seconds"]
 STATE_COLS = ["States", "Regions", "latitude", "longitude", "Dates", "Usage"]
 
+OFFICIAL_COLS = ["id", "month", "state_name", "state_code",
+                 "energy_requirement", "energy_availability"]
 
+
+@dp.table(
+    name="energy.bronze.state_monthly_official_raw",
+    comment="Official monthly state-wise energy requirement and availability (MU), CEA via India Data Portal",
+)
+def state_monthly_official_raw():
+    return autoload_csv(f"{LANDING}/state_monthly/", OFFICIAL_COLS)
+    
 def autoload_csv(path, cols):
     """Incrementally ingest CSVs as all-string columns, keeping lineage."""
     schema = ", ".join(f"`{c}` STRING" for c in cols)
