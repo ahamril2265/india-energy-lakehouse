@@ -23,3 +23,23 @@
 ## DD-03: Suspicious day-over-day jumps
 - Example: Tamil Nadu 16→17 Jul 2019 (+38%), UP 30→31 Jul 2019 (+54%).
 - **Decision:** Flagged in silver (`suspicious_jump`), not removed.
+
+## DD-04: Statistics block at the end of the 2024–2025 Report sheet
+- The last 6 rows are a summary (Minimum, Timestamp, Maximum, Timestamp,
+  Average, Sum), not data. Real hourly rows: 12,984 of 13,128 expected
+  (144 hours = 6 days missing).
+- The 12,984 hourly rows themselves are clean: all on the hour, no
+  duplicates, no zero demand, nothing above 250 GW.
+- Sum and Average match the hourly rows. Minimum (0 MW) and Maximum
+  (291,851.75 MW), with timestamps such as 17:06:41, do not appear in the
+  hourly rows, so they were computed over the underlying high-frequency
+  SCADA data.
+- **Decision:** Summary rows are kept in the extract and quarantined in
+  silver by the valid-timestamp rule.
+
+## DD-05: Hourly values in 2024–2025 may be snapshots, not averages
+- 2021–2023 data (5 s and 10 s readings) is averaged to hourly in silver.
+- Whether the 2024–2025 hourly values are top-of-hour snapshots or hourly
+  averages is not documented in the source.
+- **Assumption:** Treated as hourly averages. Comparisons of fast-changing
+  series (solar, wind) across the 2023/2024 boundary carry this caveat.
