@@ -95,3 +95,16 @@
   6,428.98).
 - 0 failed validity rules. Gold: 1,444 state-months; every bronze row
   accounted for.
+
+  ## DD-11: Cross-check of official state data against national grid data
+- Overlap Sep 2021 – Jun 2023 (22 months); 17 months have complete
+  state data.
+- Complete months: grid total is +0.88% above the sum of states on average
+  (std dev 0.77%, range −0.06% to +2.89%), consistent with inter-state
+  transmission losses being included at grid level only.
+- Incomplete months are explained by whole-month duplicate publications:
+  Jun 2022 (34 conflicting entities) and May 2023 (26).
+- **Conclusion:** The two official sources are mutually consistent; both
+  are suitable as primary sources.
+- **Future work:** use grid totals to choose between duplicate published
+  versions in Jun 2022 and May 2023.

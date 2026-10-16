@@ -58,11 +58,22 @@ def state_monthly_official():
                           F.first("requirement_mu").alias("requirement_mu"))
                      .where("_distinct = 1")
                      .drop("_distinct"))
-    w = Window.partitionBy("state")
+
+    by_state = Window.partitionBy("state")
+    in_order = Window.partitionBy("state").orderBy("month")
+
+    # Lower of the previous and next month; least() skips nulls, so one neighbour is enough.
+    # An isolated dip is flagged; a sustained shock with gradual recovery is kept (DD-12).
+    neighbour_min = F.least(F.lag("availability_mu").over(in_order),
+                            F.lead("availability_mu").over(in_order))
+
     return (one_per_month
-            .withColumn("state_median_mu", F.percentile_approx("availability_mu", 0.5).over(w))
+            .withColumn("state_median_mu", F.percentile_approx("availability_mu", 0.5).over(by_state))
+            .withColumn("neighbour_min_mu", neighbour_min)
             .withColumn("implausible",
-                        F.col("availability_mu") < F.col("state_median_mu") * IMPLAUSIBLE_RATIO))
+                        F.col("availability_mu")
+                        < F.coalesce(F.col("neighbour_min_mu"), F.col("state_median_mu"))
+                        * IMPLAUSIBLE_RATIO))
 
 
 @dp.materialized_view(name="energy.silver.state_month_reconciliation",
