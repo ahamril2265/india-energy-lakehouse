@@ -86,3 +86,12 @@
 ## DD-09: Timestamps are IST wall-clock
 - Solar peaks at 12:00 and is ~0 at night, confirming local Indian time.
 - **Decision:** Stored as TIMESTAMP_NTZ (no time zone) to prevent shifts.
+
+## DD-10: Official data completeness, fully reconciled
+- 1,512 expected state-months (36 entities, Jan 2020 – Jun 2023).
+- 1 not in source: Chandigarh, Aug 2022.
+- 67 excluded as conflicting duplicates (41 in 2022, 26 in 2023), including
+  Himachal Pradesh Jun 2022 with three copies (1,061.04 / 1,070.29 /
+  6,428.98).
+- 0 failed validity rules. Gold: 1,444 state-months; every bronze row
+  accounted for.
