@@ -12,6 +12,9 @@ VALUE_CHECKS = {
     "demand_mw": f"demand_mw BETWEEN {DEMAND_MIN_MW} AND {DEMAND_MAX_MW}",
 }
 
+# Delta tables need this feature enabled to store TIMESTAMP_NTZ columns
+NTZ = {"delta.feature.timestampNtz": "supported"}
+
 
 @dp.temporary_view(name="grid_typed")
 def grid_typed():
@@ -27,7 +30,8 @@ def grid_typed():
 
 
 @dp.materialized_view(name="energy.ops.grid_quarantine",
-                      comment="Grid rows rejected entirely (no usable timestamp)")
+                      comment="Grid rows rejected entirely (no usable timestamp)",
+                      table_properties=NTZ)
 def grid_quarantine():
     return (spark.read.table("grid_typed")
             .where("ts IS NULL")
@@ -35,7 +39,8 @@ def grid_quarantine():
 
 
 @dp.materialized_view(name="energy.ops.grid_value_issues",
-                      comment="Individual values nulled in silver because they failed a physical check")
+                      comment="Individual values nulled in silver because they failed a physical check",
+                      table_properties=NTZ)
 def grid_value_issues():
     typed = spark.read.table("grid_typed").where("ts IS NOT NULL")
     issues = [typed.where(f"{col} IS NOT NULL AND NOT ({rule})")
@@ -55,13 +60,14 @@ def grid_valid():
 
 
 @dp.materialized_view(name="energy.silver.grid_hourly",
-                      comment="National grid, hourly average MW per source (= MWh per hour), with completeness")
+                      comment="National grid, hourly average MW per source (= MWh per hour), with completeness",
+                      table_properties=NTZ)
 def grid_hourly():
     solar = F.col("solar_mw")
     solar_clipped = F.when(solar < 0, F.lit(0.0)).otherwise(solar)   # nulls stay null
 
     return (spark.read.table("grid_valid")
-            .withColumn("hour", F.date_trunc("hour", "ts"))
+            .withColumn("hour", F.date_trunc("hour", "ts").cast("timestamp_ntz"))
             .groupBy("hour")
             .agg(F.first("source_format").alias("source_format"),
                  F.max("resolution_seconds").alias("resolution_seconds"),

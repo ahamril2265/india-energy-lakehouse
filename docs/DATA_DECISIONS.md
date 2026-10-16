@@ -72,3 +72,17 @@
 - **Decision:** Official CEA monthly data becomes the primary state-level
   source. Kaggle daily data is retained as a documented case study; only
   state-months with status `match` are exposed in gold.
+
+  ## DD-08: Value-level quality checks for grid readings
+- Faults found: gas telemetry negative (2,234 readings, min −5,375 MW);
+  demand exactly 0 MW (1,080 readings, 123 hours, 91 days); 2 demand spikes
+  (402 GW, 466 GW).
+- First design quarantined whole readings, which discarded valid values
+  from other sources and removed 18 hours entirely.
+- **Decision:** Only rows without a usable timestamp are quarantined.
+  Individual values failing a physical check are set to null and logged in
+  ops.grid_value_issues. Hourly tables report demand completeness separately.
+
+## DD-09: Timestamps are IST wall-clock
+- Solar peaks at 12:00 and is ~0 at night, confirming local Indian time.
+- **Decision:** Stored as TIMESTAMP_NTZ (no time zone) to prevent shifts.
